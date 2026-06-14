@@ -1,0 +1,47 @@
+name: Quote Tweet Agent
+
+on:
+  schedule:
+    - cron: '0 */4 * * *'
+  workflow_dispatch:
+
+jobs:
+  run-agent:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run the agent
+        env:
+          GROQ_API_KEY:     ${{ secrets.GROQ_API_KEY }}
+          X_API_KEY:        ${{ secrets.X_API_KEY }}
+          X_API_SECRET:     ${{ secrets.X_API_SECRET }}
+          X_ACCESS_TOKEN:   ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_SECRET:  ${{ secrets.X_ACCESS_SECRET }}
+          BRAND_VOICE:      ${{ secrets.BRAND_VOICE }}
+          NICHE:            ${{ secrets.NICHE }}
+        run: python main.py
+
+      - name: Commit updated memory
+        run: |
+          git config user.name  "Quote Agent Bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add seen_tweets.json
+          git diff --staged --quiet || git commit -m "chore: update seen tweets [skip ci]"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,4 @@
+groq
+playwright
+schedule
+python-dotenv

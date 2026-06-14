@@ -1,0 +1,8 @@
+.env
+__pycache__/
+venv/
+*.pyc
+.pytest_cache/
+*.log
+.DS_Store
+Twitter-Agent-AWS.zip
