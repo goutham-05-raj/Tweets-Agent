@@ -3,7 +3,6 @@ name: Quote Tweet Agent
 on:
   schedule:
     - cron: '0 */4 * * *'
-    - cron: '40 18 * * *'
   workflow_dispatch:
 
 jobs:
