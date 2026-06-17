@@ -70,7 +70,8 @@ def run():
 
         # MASSIVE anti-spam delay: 2 to 4 minutes between posts! 
         # This makes 16 tweets take about 45 minutes to post, making it look 100% human.
-        delay = random.randint(120, 240)
+        # Reduced delay for testing (originally 120 to 240)
+        delay = random.randint(5, 10)
         print(f"[main] Sleeping {delay}s to mimic human typing and avoid spam filters...")
         time.sleep(delay)
 

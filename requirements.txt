@@ -1,4 +1,4 @@
 groq
-playwright
+apify-client
 schedule
 python-dotenv
