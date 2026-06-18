@@ -6,10 +6,13 @@ load_dotenv()
 
 def post_quote_tweet(quote_text: str, original_tweet_id: str, author: str = "x") -> bool:
     apify_token = os.getenv("APIFY_API_TOKEN")
+    if not apify_token:
+        raise ValueError("❌ CRITICAL ERROR: APIFY_API_TOKEN is missing from GitHub Secrets! You must add it in Settings -> Secrets -> Actions")
+        
     auth_token = os.getenv("TWITTER_AUTH_TOKEN")
     
-    if not apify_token or not auth_token:
-        print("[poster] ❌ WARNING: APIFY_API_TOKEN or TWITTER_AUTH_TOKEN is missing!")
+    if not auth_token:
+        print("[poster] ❌ WARNING: TWITTER_AUTH_TOKEN is missing!")
         return False
         
     if original_tweet_id == "unknown":
