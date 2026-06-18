@@ -55,6 +55,7 @@ def run():
 
     # Shuffle the final list so we don't post back-to-back for the same account
     random.shuffle(final_candidates)
+    final_candidates = final_candidates[:1]
 
     print(f"[main] Target for this run: {len(final_candidates)} highly-curated quote tweets.")
 
