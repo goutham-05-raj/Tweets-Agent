@@ -5,6 +5,8 @@ from apify_client import ApifyClient
 
 load_dotenv()
 
+# Apidojo blocks queries with maxItems < 50 and returns {"noResults": true}
+# We request 50 to bypass this, but our main.py will still only process the newest ones.
 FETCH_LIMIT = 50
 
 def clean_text(text: str) -> str:
@@ -27,15 +29,15 @@ def fetch_tweets(accounts: dict) -> list:
     for username, prompt in accounts.items():
         print(f"[fetcher] Fetching @{username}...")
         
-        # Prepare the Actor input
+        # Prepare the Actor input for quacker/twitter-scraper
         run_input = {
-            "twitterHandles": [username],
-            "maxItems": FETCH_LIMIT,
-            "sort": "Latest"
+            "handles": [username],
+            "tweetsDesired": FETCH_LIMIT,
+            "profilesDesired": 1
         }
 
         # Run the Actor and wait for it to finish
-        run = client.actor("apidojo/tweet-scraper").call(run_input=run_input)
+        run = client.actor("quacker/twitter-scraper").call(run_input=run_input)
 
         if isinstance(run, dict):
             dataset_id = run.get("defaultDatasetId")
@@ -45,30 +47,31 @@ def fetch_tweets(accounts: dict) -> list:
         # Fetch results from the run's dataset
         tweets = []
         for item in client.dataset(dataset_id).iterate_items():
-            text = clean_text(item.get("text", ""))
+            text = clean_text(item.get("full_text", item.get("text", "")))
             
             if len(text) < 20:
                 continue
             
             # Make sure it's from the actual user and not a retweet
-            # apidojo/tweet-scraper outputs username directly or in author object
-            if isinstance(item.get("author"), dict):
-                author = item["author"].get("userName", "")
+            # quacker outputs author info under "user" object
+            user_obj = item.get("user", {})
+            if isinstance(user_obj, dict):
+                author = user_obj.get("screen_name", user_obj.get("name", ""))
             else:
-                author = item.get("username", item.get("handle", ""))
+                author = item.get("author", item.get("username", ""))
                 
             if username.lower() not in author.lower():
                 continue
 
             tweets.append({
-                "id": item.get("id", item.get("tweet_id", "unknown")),
+                "id": item.get("id_str", item.get("id", "unknown")),
                 "author": username,
                 "prompt": prompt,
                 "text": text[:500],
-                "likes": item.get("likeCount", item.get("favorite_count", 0)),
-                "retweets": item.get("retweetCount", item.get("retweet_count", 0)),
+                "likes": item.get("favorite_count", item.get("likeCount", 0)),
+                "retweets": item.get("retweet_count", item.get("retweetCount", 0)),
                 "engagement": 0,
-                "url": item.get("url", item.get("tweet_url", f"https://x.com/{username}"))
+                "url": item.get("url", f"https://x.com/{username}/status/{item.get('id_str', '')}")
             })
 
         print(f"[fetcher] 🎯 @{username}: {len(tweets)} tweets fetched")
