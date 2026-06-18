@@ -51,19 +51,24 @@ def fetch_tweets(accounts: dict) -> list:
                 continue
             
             # Make sure it's from the actual user and not a retweet
-            author = item.get("author", {}).get("userName", "")
+            # apidojo/tweet-scraper outputs username directly or in author object
+            if isinstance(item.get("author"), dict):
+                author = item["author"].get("userName", "")
+            else:
+                author = item.get("username", item.get("handle", ""))
+                
             if username.lower() not in author.lower():
                 continue
 
             tweets.append({
-                "id": item.get("id", "unknown"),
+                "id": item.get("id", item.get("tweet_id", "unknown")),
                 "author": username,
                 "prompt": prompt,
                 "text": text[:500],
-                "likes": item.get("likeCount", 0),
-                "retweets": item.get("retweetCount", 0),
+                "likes": item.get("likeCount", item.get("favorite_count", 0)),
+                "retweets": item.get("retweetCount", item.get("retweet_count", 0)),
                 "engagement": 0,
-                "url": item.get("url", f"https://x.com/{username}")
+                "url": item.get("url", item.get("tweet_url", f"https://x.com/{username}"))
             })
 
         print(f"[fetcher] 🎯 @{username}: {len(tweets)} tweets fetched")
