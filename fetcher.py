@@ -37,9 +37,14 @@ def fetch_tweets(accounts: dict) -> list:
         # Run the Actor and wait for it to finish
         run = client.actor("apidojo/tweet-scraper").call(run_input=run_input)
 
+        if isinstance(run, dict):
+            dataset_id = run.get("defaultDatasetId")
+        else:
+            dataset_id = getattr(run, "defaultDatasetId", None) or getattr(run, "default_dataset_id", None)
+
         # Fetch results from the run's dataset
         tweets = []
-        for item in client.dataset(run["defaultDatasetId"]).iterate_items():
+        for item in client.dataset(dataset_id).iterate_items():
             text = clean_text(item.get("text", ""))
             
             if len(text) < 20:
