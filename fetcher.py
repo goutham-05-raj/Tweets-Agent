@@ -5,7 +5,7 @@ from apify_client import ApifyClient
 
 load_dotenv()
 
-FETCH_LIMIT = 5
+FETCH_LIMIT = 50
 
 def clean_text(text: str) -> str:
     if not text: return ""
